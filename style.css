@@ -1,0 +1,54 @@
+
+body {
+    text-align: center;
+    font-size: 16px;
+    margin: 110px 110px;
+    color: #000000;
+    line-height: 44px;
+}
+
+form {
+    margin: 0 auto;
+    width: 400px;
+    border: 2px solid black;
+    border-radius: 20px;
+    padding: 40px;
+}
+
+input {
+    margin-left: 30px;
+    color: #000000;
+    font-size: 16px;
+    outline: none;
+    border: none;
+    background: transparent;
+    border-bottom: 1px solid #000000;
+}
+
+.submit__styles {
+    color: #000000;
+    margin-top: 30px;
+    outline: none;
+    border: 1px solid #000000;
+    border-radius: 10px;
+    padding: 10px 25px;
+    background-color: transparent;
+    transition: all 1s ease 0s;
+    margin-bottom: 50px;
+}
+
+.submit__styles:hover {
+    cursor: pointer;
+    background-color: #000000;
+    color: #fbfbfb;
+}
+
+textarea {
+    width: 250px;
+    height: 150px;
+    font-size: 14px;
+    padding: 5px;
+    border: 1px solid #dbdbdb;
+    resize: none;
+    overflow: hidden;
+}
