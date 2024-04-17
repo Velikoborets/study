@@ -82,10 +82,10 @@ $user = mysqli_fetch_assoc($db_query_check);
 
 // Наша авторизация должна работать так:
 // пользователь, который хочет авторизоваться на сайте,
-// заходит на страницу auth.php, вбивает правильные логин и пароль
+// заходит на страницу 2_auth.php, вбивает правильные логин и пароль
 // далее "ходит" по страницам сайта уже будучи авторизованным.
 
-/* auth.php
+/* 2_auth.php
    После того, как проверка на совпад. user пройдена ()
    допишем пометку для др стр : $_SESSION['auth'] = true
    которая означ. что user, авторизован.
@@ -100,6 +100,7 @@ $user = mysqli_fetch_assoc($db_query_check);
    То напишем "скрытый текст для user". Например:
 
    <?php
+
        if (!empty($_SESSION['auth'])) {
           echo 'текст только для авт. пользователя';
       } else {
@@ -107,6 +108,7 @@ $user = mysqli_fetch_assoc($db_query_check);
       }
 
     Можно и так записать (закрыть часть стр.):
+
     <p>текст для всех</p>
     <?php
         if (!empty($_SESSION['auth'])) {
@@ -122,7 +124,7 @@ $user = mysqli_fetch_assoc($db_query_check);
 
 // ДЗ (выход из сессии):
 
-// auth.php
+// 2_auth.php
 
 /* тут у нас код из урока 372, где проверка на совпадение
    вводимых данных user с данными из БД.
@@ -132,7 +134,7 @@ $user = mysqli_fetch_assoc($db_query_check);
 // Если отправлены логин и пароль:
 <?php if(!empty($_POST['login']) && !empty($_POST['password'])): ?>
 
-// Юзер и зарегестр. (Есть совпадение с БД)
+// Юзер и зарегистр. (Есть совпадение с БД)
     <?php if (!empty($user)): ?>
 
         <?php // Записываем в сессию: ?>
@@ -146,10 +148,9 @@ $user = mysqli_fetch_assoc($db_query_check);
         <?php // Логин юзера ?>
         <?php $_SESSION['login'] = $login; ?>
 
-         // Выводим сообщ. об успехе с ссылками для др.стр.
-        <?='Спасибо, что автризовались! Можете ходить по страницам:'?><br>
-        <a href="page1.php">page1</a><br>
-        <a href="page2.php">page2</a>
+         // Выводим сообщ. об успехе и делаем редирект на стр 3_main.php
+        <?php header('Location: 3_main.php'); ?>
+        <?php die(); ?>
 
     <? else: ?>
         // Если юзер не совпадает
@@ -163,7 +164,7 @@ $user = mysqli_fetch_assoc($db_query_check);
     <html lang="en">
     <head>
         <title>Authorization</title>
-        <link rel="stylesheet" href="base_css.css">
+        <link rel="stylesheet" href="mini_site.css">
     </head>
     <body>
     <h4>Авторизация</h4>
@@ -180,35 +181,36 @@ $user = mysqli_fetch_assoc($db_query_check);
 <?php endif; ?>
 
 
-// page1.php
+// 3_main.php
 
-<p> этот текст для всех </p>
-<?php session_start(); ?>
+<body>
+    <h2>ГЛАВНАЯ СТРАНИЦА</h2>
+    <p>В этом месте контент, для всех пользователей</p>
+    <?php session_start(); ?>
+    <?php if (!empty($_SESSION['auth'])): ?>
+        <p>Скрытй контент, для Вас <?=$_SESSION['login']; ?> : </p>
+        <a href="page1.php">page1</a><br>
+        <a href="page2.php">page2</a>
+        <p>Хотите <a href="4_logout.php">выйти</a> из аккаунта?</p>
+    <?php else: ?>
+        <p>Если хотите видеть скрытый
+        текст то <a href="2_auth.php"> Авторизуйтесь </a></p>
+    <?php endif; ?>
+</body>
 
-// сообщение для зареганых юзеров:
-<?php if (!empty($_SESSION['auth'])): ?>
-    <p>А это сообщение для Вас <?=$_SESSION['login']; ?> </p>
-// предложение о выходе из аккаунта
-    <p><a href="logout.php">Выйти</a> из аккаунта </p>
 
-// текст для тех, кто не зареган:
-<?php else: ?>
-    <?='Зарегайтесь! Чтобы увидеть скрытый текст'; ?><br>
-    <p>Вот <a href="auth.php">ссылка</a> для авторизации</p>
-<?php endif?>
-
-
-// logout.php
+// 4_logout.php
 
 // когда в page1.php тыкаем на ссылку "выйти из аккаунта",
-// мы переходим на logout.php, где снимаем пометку об авторизации,
+// мы переходим на 4_logout.php, где снимаем пометку об авторизации,
 // и переходим обратно на стартовую стр, с авторизацией:
 
 session_start();
 $_SESSION['auth'] = false;
-header('Location: auth.php');
+header('Location: 2_auth.php');
 die();
 */
+
 
 
 /***** РЕГИСТРАЦИЯ НА PHP 375/392 ****/
@@ -256,9 +258,18 @@ if (!empty($_POST)):
 // 7. Когда форма прошла все проверки, зарегаем нашего юзера.
 //    Вставив все его данные в БД.
 //    (Помимо этого, автоматически вставим дату его регистрации):
+
             $query_insert = "INSERT INTO data_of_users SET login='$login',password='$password', email='$email', birthday='$correct_date',date_of_reg='$current_date'";
             $db_query_insert = mysqli_query($db_connect, $query_insert);
-            echo 'Ваши данные приняты!';
+
+//  А так же поставим помтеку, об успешной авторизации
+//  (Чтобы user, авторизовывался автоматически);
+
+            session_start();
+            $_SESSION['auth'] = true;
+            $_SESSION['login'] = $login;
+            header('Location: 3_main.php');
+            die();
         }
 
 // 8. Если поля пустые то соотв:
@@ -272,7 +283,7 @@ if (!empty($_POST)):
     <html lang="en">
     <head>
         <title>Registration</title>
-        <link rel="stylesheet" href="base_css.css">
+        <link rel="stylesheet" href="mini_site.css">
     </head>
     <body>
     <h4>Регистрация</h4>
@@ -289,4 +300,76 @@ if (!empty($_POST)):
 */
 
 
+
+/***** АВТОРИЗАЦИЯ СРАЗУ ПРИ РЕГИСТРАЦИИ В PHP 376/392 ****/
+
+// Чтобы зайти на сайт сразу, после успешной регистрации,
+// запишем в сессию "пометку", об успешной авторизации;
+// И сделаем редирект, на стр. 3_main.php
+// Где у нас ссылки на др. страницы
+
+// В пункте 7, урока 375 , допишем эту пометку:
+
+// session_start();
+// $_SESSION['auth'] = true;
+// $_SESSION['login'] = $login;
+// header('Location: 3_main.php');
+// die();
+
+
+
+/***** ДОБАВЛЕНИЕ ID ПОЛЬЗОВАТЕЛЯ В СЕССИЮ 377/392 ****/
+
+// Если нам надо добавить ID user в сессию (при регистрации),
+// исп. фу-ю :              $id = mysqli_insert_id($link);
+// И запишем id в сессию:   $_SESSION['id'] = $id;
+
+// Допишем в том же месте, как и прошл. задании
+// (В пункте 7, урока 375);
+
+
+
+/***** СКРЫТИЕ ПАРОЛЯ ПРИ РЕГИСТРАЦИИ НА PHP 378/392 ****/
+
+// Скрытие пароля делается с пом. input type=password
+// Но тут проблема - что user, не видит, то что вводит и может ошибиться.
+// И зарегаться с др. паролем (т.к поле одно!)
+
+// Для решения такой проблемы, создаём 2 поля с type=password
+// В одном вводим пароль, во втором его подтверждение
+// Напишем проверку, которая проверяет пароли на совпадение:
+
+/*
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+
+    if (!empty($password) && !empty($confirm_password)) {
+
+        if ($password === $confirm_password) {
+            echo 'Отлично, пароли совпадают. Ваш пароль создан!';
+        } else {
+            echo 'Пароли не совпадают((';
+        }
+    }
+*/
+// Ну и поместим ее в регистрацию (Это ДЗ, я его сделал)
+
+
+
+/***** ПРОВЕРКА ЛОГИНА НА ЗАНЯТОСТЬ 379/392 ****/
+
+// Внедрили в регистрацию условие для проверки логина на уникальность.
+// 4. Запрос, для проверки логина на уникальность:
+/*
+    $query_check_login = "SELECT * FROM data_of_users WHERE login='$login'";
+    $db_query_check_login = mysqli_query($db_connect, $query_check_login);
+    $check_login= mysqli_fetch_assoc($db_query_check_login);
+*/
+
+
+
+/***** ВАЛИДАЦИЯ ДАННЫХ ПРИ РЕГИСТРАЦИИ НА PHP 380/392 ****/
+
+// Валидация - проверка формы на "правильность заполнения".
+// т.к там много "нюансов, то потом скину уже всё готовое и закомментирую как надо для всех уроков"
 

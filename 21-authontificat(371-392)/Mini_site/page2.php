@@ -6,6 +6,10 @@
     mb_internal_encoding('UTF-8');
 ?>
 
+<?php
+// "подхватываем сессию" и ввыводим сообще для зареганых
+// И предл. выйти
+?>
 
 <?php session_start(); ?>
 <?php if (!empty($_SESSION['auth'])): ?>
@@ -15,11 +19,11 @@
     <body>
         <p>Добро пожаловать! <?=$_SESSION['login']; ?> </p>
         <p>Текст, для тех кто смог пройти регистрацию!) </p>
-        <p><a href="logout.php">Выйти</a> из аккаунта </p>
+        <p><a href="4_logout.php">Выйти</a> из аккаунта </p>
     </body>
 </html>
 <?php else: ?>
-    <p>Пожалуйста, авторизуйтесь! <a href="auth.php">ссылка</a> </p>
+    <p>Пожалуйста, авторизуйтесь! <a href="2_auth.php">ссылка</a> </p>
 <?php endif; ?>
 
 <?php //session_destroy(); ?>
