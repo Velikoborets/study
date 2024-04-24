@@ -17,3 +17,20 @@ select {
     margin-bottom:80px;
     margin-left: 20px;
 }
+
+table, th, td, tr {
+    color: #272727;
+    border: 1px solid black;
+}
+
+body {
+    background-color: #f5f5f5;
+}
+
+.red {
+    background-color: #ffc3c3;
+}
+
+.green {
+    background-color: #e8ffe8;
+}

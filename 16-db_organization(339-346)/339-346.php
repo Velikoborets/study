@@ -1,5 +1,5 @@
-<?php
 
+<?php
 
 /*** СВЯЗЫВАНИЕ ТАБЛИЦ В БД 339/346 ✓ ***/
     
@@ -72,7 +72,7 @@
  *  1.Таблицу список 
  *  2.Присоединить к таблице категории:
  *  
- *  FROM users LEFT taJOIN city
+ *  FROM users LEFT to JOIN city
  */
 
 // Step3
