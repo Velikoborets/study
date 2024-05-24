@@ -1,0 +1,277 @@
+
+/******** ВВЕДЕНИЕ В ДВИЖОК PHP 393/405 *********/
+
+Представим, что есть сайт из 100 таких стр.
+(отличаются страницы только title и content).
+
+<title>title</title>
+<body>
+	<header>
+		header
+	</header>
+	<main>
+		content
+	</main>
+	<footer>
+		footer
+	</footer>
+</body>
+
+1. Если нам надо поменять текст в хедере сайта, 
+2. Придется менять 100 файлов.
+3. Поэтому РНР сайт делается на движке.
+
+Суть движка:
+1. Шаблон размещается в 1 файле И в зависимости от "вбитого" URL.
+2. В этот файл, подгружался различный контент(ядро движка).
+
+
+
+/******** ИСПОЛЬЗОВАНИЕ HTACCESS В ДВИЖКЕ PHP 394,395/405 *********/
+
+.htaccess - с пом. него можно сделать, так чтобы запрос любого URL,
+Обрабатывался одним файлом РНР. (На нём, как бы базируется движок)
+
+ Итого:
+
+    RewriteEngine On            // мод движка для перенапр. запросов
+
+    RewriteBase /          		//  указание корня сайта (корн.каталога)
+
+    RewriteCond %{REQUEST_URI} !\.(js|css|ico|jpg|png)$  // искл. 
+														//	для перенапр.
+															
+    RewriteRule .+ index.php    // регулярка приводящая любой вбитый
+								   URL к index.php
+
+
+
+/******** ДВИЖОК НА ФАЙЛАХ В PHP 395,396,397,398,399/405 *********/
+
+
+<?php
+
+// СТРУКТУРА ФАЙЛОВ И РАБОТУ С URL:
+
+// /index.php - в корне
+// /.htaccess - в корне
+
+// firstEngine/layout.php - файл нашего шаблона.
+// firstEngine/view - папка с файлами контента
+
+// firstEngine/view/page1 - файл1
+// firstEngine/view/dir1/page2 - файл2
+// firstEngine/view/dir1/sub/page3 - файл3
+
+// 1. Текущий "url", хранится в $_SERVER, запишем его в перемен, для удобства
+
+	  $url = $_SERVER['REQUEST_URI'];
+
+
+// ПИШЕМ ИЗМЕНЕНИЯ В CONTENT (НАШИ СТРАНИЦЫ PAGE1, PAGE2 ...)
+
+// Опр. переменную, для проверки на валидность path:
+$path = 'firstEngine/view' . $url . '.php';
+
+// Подрубим файлы контента, (т.е что usr, будет вводить в URL: page1, итд).
+// (Это сделано, чтобы дальше к шаблону подрубить записаный в эти стр.контент)
+if (file_exists($path)) {
+    $content = file_get_contents($path);
+}
+
+// Иначе, выводим страницу с ошибкой
+// (обычная html стр, где в <div> 404 not found </div>)
+// и отправляем заголовок с ошибкой в браузер
+
+else {
+    header('HTTP/1.0 404 Not Found');
+    $content = file_get_contents('firstEngine/404.php');
+}
+
+// Так же у нас меняются и <title>, на каждой из стр (page1 итд) - он свой.
+// (я обозначил title "командой", чтобы было легче отловить регуляркой)
+// Отловим "команду", в которой title, с пом. регулярки
+
+preg_match('#{{ (.+) }}#', $content, $match);
+
+// Запишем в перемен "отловленный" title:
+
+$title = $match[1];
+
+// Теперь когда мы словили "title" он нам не нужен,
+// Поэтому можем его заменить на пустоту, чтобы не показ. на стр.(page1 итд).
+// ($content перезаписался и теперь помимо вывода "удаляет" $title)
+
+$content = preg_replace('#{{ (.+) }}#', ' ', $content);
+
+
+// ПИШЕМ ИЗМЕНЕНИЯ В ШАБЛОН (LAYOUT):
+
+// Подключим файл с шаблоном к index.php,
+// для манипулирования его контентом, через PHP код.
+// (теперь у нас всегда выводится контент шаблона)
+
+$layout = file_get_contents('firstEngine/layout.php');
+
+// Запишем в шаблон "команду" <main>{{ content }}</main>,
+// которую будем заменять на контент из других страниц
+// (page1,page2 итд в зав-ти от того, что вбито в URL).
+// $layout перезапишется.
+// И теперь помимо просто вывода, будет еще менять контент.
+// На тот, который в других страницах (page1 итд)
+
+$layout = str_replace('{{ content }}', $content, $layout);
+
+// Запишем в шаблон команду <title>{{ title }}</title>,
+// Которую заменим на тайтлы из страниц (page1 итд):
+
+$layout = str_replace('{{ title }}', $title, $layout);
+
+echo $layout;
+
+
+
+/******** ДВИЖОК НА БАЗЕ ДАННЫХ В PHP 400/405 *********/
+
+<?php
+
+global $dbConnect;
+
+// Подрубаем БД
+$link = require 'secondEngine/connect.php';
+$link = $dbConnect;
+
+// Получаем запрошенный(вбитый) URL
+$url = $_SERVER['REQUEST_URI'];
+
+// С помощью регулярки слови наш URL
+preg_match('#/page/(\d+)#', $url, $match);
+
+// Запишем id в переменную
+$id = $match[1];
+
+// Выполним запрос к БД по id, получив запрошенную страницу (/page/1)
+$query = "SELECT * FROM pages WHERE id=$id";
+$dbQuery = mysqli_query($link, $query) or die(mysqli_error($link));
+$page = mysqli_fetch_assoc($dbQuery);
+
+// Подрубим файл шаблона
+$layout = file_get_contents('secondEngine/layout.php');
+
+// В файле шаблона выполним вставку тайтла и контента из БД
+$layout = str_replace('{{ title }}', $page['title'], $layout);
+$layout = str_replace('{{ content }}', $page['title'], $layout);
+
+echo $layout;
+
+?>
+
+
+
+/******** ЧПУ В ДВИЖКЕ 401/405 *********/
+
+// ЧПУ - человекоподобный URL - адрес
+// Красиво, когда для страницы указывается не ее номер, а текстовое имя. 
+// Соответ. тайтлу страницы, например вот так: /page/my-first-page/
+
+// Заменим код который выше, на который ниже, для получения "URL с ЧПУ":
+
+// Кусочек урла, соответствующей имени страницы, называется слаг (slug).
+// Добавим в БД колонку со "Слагами":
+//    slug
+// my-first-page
+// my-second-page
+// my-third-page
+
+// С помощью регулярки словим наш URL (со слагом)
+preg_match('#/page/([a-z0-9_-]+)#', $url, $match);
+
+// Запишем слаг в переменную
+$slug = $match[1];
+
+// Выполним запрос к БД по id, получив запрошенную страницу (/page/my-first-page) со слагом.
+$query = "SELECT * FROM pages WHERE slug='$slug'";
+$dbQuery = mysqli_query($link, $query) or die(mysqli_error($link));
+$page = mysqli_fetch_assoc($dbQuery);
+
+
+
+/******** ПРОСТОЙ РОУТИНГ В ДВИЖКЕ В PHP 402/405 *********/
+
+// Код, который обрабатывает (URL) и "указывает серверу" куда идти user,
+// называется, маршрутизацией или роутингом.
+
+// index.php
+// Запишем вбитый url в переменную
+$url = $_SERVER['REQUEST_URI'];
+
+// Если URL попадает в регулярку
+if (preg_match('#^/page/([a-zA-Z0-9_-]+)$#', $url, $params)) {
+    // Подтягиваем сформированную стр
+    $page = include 'secondEngine/page/show.php';
+}
+
+
+if (preg_match('#^/page/all$#', $url, $params)) {
+
+    $page = include 'secondEngine/page/all.php';
+}
+
+// На основе сформированой стр, записываем изменения в шаблон:
+$layout = file_get_contents('secondEngine/layout.php');
+$layout = str_replace('{{ title }}', $page['slug'], $layout);
+$layout = str_replace('{{ content }}', $page['content'], $layout);
+
+echo $layout;
+
+
+
+// all.php
+// Сформируем страницу, которую "подтянем" в шаблон
+include 'secondEngine/connectDb.php';
+$query = "SELECT slug, title FROM dataUsers";
+$res = mysqli_query($dbConnect, $query) or die(mysqli_error($dbConnect));
+for ($data = []; $row = mysqli_fetch_assoc($res); $data[] = $row);
+
+$content = '';
+foreach ($data as $page) {
+// Запписываем в $content, slug в адрес ссылки, title в название.
+    $content .= '
+        <div>
+            <a href="/page/'. $page['slug'] .'">' . $page['title'] . '</a> 
+        </div>
+    ';
+}
+
+// Сформируем массив, чтобы было удобнее вернуть значение
+$page = [
+    'title' => 'cписок всех страниц',
+    'content' => $content
+];
+
+
+return $page;
+
+
+
+/******** РОУТИНГ С ИМЕНОВАННЫМИ ПАРАМЕТРАМИ НА PHP 403/405 *********/
+
+// В прошлом уроке, наш роутинг(код обработки URL)
+// Формировал массив параметров $params
+// С которого мы по номеру ($params[1]), вытаскивали URL, для сверки со slug
+
+// Это не удобно, если будет много параметров, 
+// Поэтому лучше сразу дать имя каждому из них.
+
+// У нас сейчас 1 параметр(slug), поэтому дадим ему имя в регулярке:
+if (preg_match('#^/page/(?<slug>[a-z0-9_-]+)$#', $url, $params)) { 
+		$page = include 'view/page/show.php';
+}
+
+// Теперь можем получать значение параметра по имени кармана:
+$slug = $params['slug'];
+
+
+
+/******** НЕСКОЛЬКО ПАРАМЕТРОВ В РОУТАХ ДВИЖКА В PHP 404/405 *********/
+

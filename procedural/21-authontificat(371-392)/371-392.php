@@ -564,3 +564,18 @@ if (!empty($_POST)):
 
 /***** НОРМАЛИЗАЦИЯ БАЗЫ ДАННЫХ 392/392 ****/
 
+/*
+
+ 1. Выбираем всю таблицу dataUsers, и колонку (для присоединения)
+    SELECT dataUsers.*, statuses.status as status
+
+ 2. Таблицу список (список idшников) присоединияем к таблице категории (admin)
+    FROM dataUsers LEFT JOIN statuses
+
+ 3.  К полям('id') таблице-категорий
+     присоединяем поля('list_id') таблицы-списка:
+     ON statuses.id=dataUsers.status_id";
+
+ 4. В итоге получаем 2 связаных по id таблицы
+
+*/

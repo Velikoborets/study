@@ -34,7 +34,7 @@ $fatherName = $_POST['fatherName'];
 // Параметры подключения к БД
 const DB_HOST = 'localhost';
 const DB_USERNAME = 'root';
-const DB_PASSWORD = 'Gtahzby7711';
+const DB_PASSWORD = 'Gzasdgzasd';
 const DB_NAME = 'testDb';
 
 $dbConnect = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);

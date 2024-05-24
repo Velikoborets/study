@@ -15,7 +15,7 @@ if(!empty($_SESSION['auth']) && $_SESSION['status'] === 'admin') {
 
     $queryUsers = "SELECT dataUsers.*, statuses.status as status
         FROM dataUsers LEFT JOIN statuses
-        ON dataUsers.status_id=statuses.id";
+        ON statuses.id=dataUsers.status_id";
 
     $dbQueryUsers = mysqli_query($dbConnect,$queryUsers);
 
